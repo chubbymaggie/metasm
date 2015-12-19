@@ -475,7 +475,7 @@ class Ia32
 		addop 'pavgb',   [0x0F, 0xE0], :mrmmmx
 		addop 'pavgw',   [0x0F, 0xE3], :mrmmmx
 		addop 'pextrw',  [0x0F, 0xC5, 0xC0], nil, {:reg => [2, 3], :regmmx => [2, 0]}, :reg, :regmmx, :u8
-		addop 'pinsrw',  [0x0F, 0xC4, 0x00], nil, {:modrm => [2, 0], :regmmx => [2, 3]}, :modrm, :regmmx, :u8
+		addop 'pinsrw',  [0x0F, 0xC4, 0x00], nil, {:modrm => [2, 0], :regmmx => [2, 3]}, :regmmx, :modrm, :u8
 		addop 'pmaxsw',  [0x0F, 0xEE], :mrmmmx
 		addop 'pmaxub',  [0x0F, 0xDE], :mrmmmx
 		addop 'pminsw',  [0x0F, 0xEA], :mrmmmx
@@ -644,7 +644,7 @@ class Ia32
 		addop('vmclear',  [0x0F, 0xC7, 6<<3], :modrmA) { |o| o.props[:argsz] = 64 ; o.props[:needpfx] = 0x66 }
 		addop('vmxon',    [0x0F, 0xC7, 6<<3], :modrmA) { |o| o.props[:argsz] = 64 ; o.props[:needpfx] = 0xF3 }
 		addop('vmptrld',  [0x0F, 0xC7, 6<<3], :modrmA) { |o| o.props[:argsz] = 64 }
-		addop('vmptrrst', [0x0F, 0xC7, 7<<3], :modrmA) { |o| o.props[:argsz] = 64 }
+		addop('vmptrst',  [0x0F, 0xC7, 7<<3], :modrmA) { |o| o.props[:argsz] = 64 }
 		addop('invept',   [0x0F, 0x38, 0x80], :mrmA) { |o| o.props[:needpfx] = 0x66 }
 		addop('invvpid',  [0x0F, 0x38, 0x81], :mrmA) { |o| o.props[:needpfx] = 0x66 }
 
@@ -674,9 +674,9 @@ class Ia32
 		addop('pblendvb', [0x0F, 0x38, 0x10], :mrmxmm) { |o| o.props[:needpfx] = 0x66 }
 		addop('pblendw',  [0x0F, 0x3A, 0x1E], :mrmxmm, :u8) { |o| o.props[:needpfx] = 0x66 }
 		addop('pcmpeqq',  [0x0F, 0x38, 0x29], :mrmxmm) { |o| o.props[:needpfx] = 0x66 }
-		addop('pextrb', [0x0F, 0x3A, 0x14], :mrmxmm, :u8) { |o| o.props[:needpfx] = 0x66; o.args[o.args.index(:modrmxmm)] = :modrm; o.props[:argsz] = 8 }
-		addop('pextrw', [0x0F, 0x3A, 0x15], :mrmxmm, :u8) { |o| o.props[:needpfx] = 0x66; o.args[o.args.index(:modrmxmm)] = :modrm; o.props[:argsz] = 16 }
-		addop('pextrd', [0x0F, 0x3A, 0x16], :mrmxmm, :u8) { |o| o.props[:needpfx] = 0x66; o.args[o.args.index(:modrmxmm)] = :modrm; o.props[:argsz] = 32 }
+		addop('pextrb', [0x0F, 0x3A, 0x14], :mrmxmm, :u8) { |o| o.props[:needpfx] = 0x66; o.args.index(:modrmxmm); o.args.unshift(:modrm); o.props[:argsz] = 8 }
+		addop('pextrw', [0x0F, 0x3A, 0x15], :mrmxmm, :u8) { |o| o.props[:needpfx] = 0x66; o.args.index(:modrmxmm); o.args.unshift(:modrm); o.props[:argsz] = 16 }
+		addop('pextrd', [0x0F, 0x3A, 0x16], :mrmxmm, :u8) { |o| o.props[:needpfx] = 0x66; o.args.index(:modrmxmm); o.args.unshift(:modrm); o.props[:argsz] = 32 }
 		addop('pinsrb', [0x0F, 0x3A, 0x20], :mrmxmm, :u8) { |o| o.props[:needpfx] = 0x66; o.args[o.args.index(:modrmxmm)] = :modrm; o.props[:argsz] = 8 }
 		addop('pinsrw', [0x0F, 0x3A, 0x21], :mrmxmm, :u8) { |o| o.props[:needpfx] = 0x66; o.args[o.args.index(:modrmxmm)] = :modrm; o.props[:argsz] = 16 }
 		addop('pinsrd', [0x0F, 0x3A, 0x22], :mrmxmm, :u8) { |o| o.props[:needpfx] = 0x66; o.args[o.args.index(:modrmxmm)] = :modrm; o.props[:argsz] = 32 }

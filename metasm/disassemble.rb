@@ -26,6 +26,8 @@ class DecodedInstruction
 	attr_accessor :backtrace_binding
 	# used during fixed-size instruction decoding to hold the decoded raw opcode
 	attr_accessor :raw_data
+	# arbitrary data used during decoding, architecture-specific
+	attr_accessor :misc
 
 	# create a new DecodedInstruction with an Instruction whose cpu is the argument
 	# can take an existing Instruction as argument
@@ -544,7 +546,6 @@ class Disassembler
 	def normalize(addr)
 		return addr if not addr or addr == :default
 		addr = Expression[addr].bind(@old_prog_binding).reduce if not addr.kind_of? Integer
-		addr %= 1 << [@cpu.size, 32].max if @cpu and addr.kind_of? Integer
 		addr
 	end
 

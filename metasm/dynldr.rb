@@ -85,7 +85,13 @@ extern VALUE *rb_eArgError __attribute__((import));
  #define ARY_LEN(o) (RArray(o)->len)
 #endif
 
-#define TYPE(x) (((VALUE)(x) & 1) ? T_FIXNUM : (((VALUE)(x) & 3) || ((VALUE)(x) < 7)) ? 0x40 : RString(x)->flags & T_MASK)
+#if #{nil.object_id == 4 ? 1 : 0}
+// ruby1.8
+#define TYPE(x) (((VALUE)(x) & 1) ? T_FIXNUM : (((VALUE)(x) < 0x07) || (((VALUE)(x) & 0xf) == 0xe)) ? 0x40 : RString(x)->flags & T_MASK)
+#else
+// ruby2.0+, USE_FLONUM, world is hell
+#define TYPE(x) (((VALUE)(x) & 1) ? T_FIXNUM : (((VALUE)(x) < 0x3f) || (((VALUE)(x) & 0xf) == 0xc) || (((VALUE)(x) & 3) == 2)) ? 0x40 : RString(x)->flags & T_MASK)
+#endif
 
 VALUE rb_uint2inum(VALUE);
 VALUE rb_ull2inum(unsigned long long);
@@ -604,7 +610,7 @@ EOS
 
 		binmodule = find_bin_path
 
-		if not File.exists?(binmodule) or File.stat(binmodule).mtime < File.stat(__FILE__).mtime
+		if not File.exist?(binmodule) or File.stat(binmodule).mtime < File.stat(__FILE__).mtime
 			compile_binary_module(host_exe, host_cpu, binmodule)
 		end
 
@@ -727,7 +733,7 @@ EOS
 		fname = ['dynldr', host_arch, host_cpu.shortname, RUBY_VERSION.gsub('.', '')].join('-') + '.so'
 		dir = File.dirname(__FILE__)
 		binmodule = File.join(dir, fname)
-		if not File.exists? binmodule or File.stat(binmodule).mtime < File.stat(__FILE__).mtime
+		if not File.exist? binmodule or File.stat(binmodule).mtime < File.stat(__FILE__).mtime
 			if not dir = find_write_dir
 				raise LoadError, "no writable dir to put the DynLdr ruby module, try to run as root"
 			end
