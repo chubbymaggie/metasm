@@ -428,7 +428,7 @@ class Ia32
 			when 'pop'
 				lambda { |di, a0| { esp => Expression[esp, :+, opsz(di)/8],
 					a0 => Indirection[esp, opsz(di)/8, di.address] } }
-			when 'pushfd', 'pushf'
+			when 'pushfd', 'pushf', 'pushfq'
 				# TODO Unknown per bit
 				lambda { |di|
 					efl = Expression[0x202]
@@ -439,7 +439,7 @@ class Ia32
 					bts[11, :eflag_o]
 					{ esp => Expression[esp, :-, opsz(di)/8], Indirection[esp, opsz(di)/8, di.address] => efl }
 				}
-			when 'popfd', 'popf'
+			when 'popfd', 'popf', 'popfq'
 				lambda { |di| bt = lambda { |pos| Expression[[Indirection[esp, opsz(di)/8, di.address], :>>, pos], :&, 1] }
 					{ esp => Expression[esp, :+, opsz(di)/8], :eflag_c => bt[0], :eflag_z => bt[6], :eflag_s => bt[7], :eflag_o => bt[11] } }
 			when 'sahf'
@@ -556,7 +556,7 @@ class Ia32
 					op =~ /^(stos|movs|lods|scas|cmps)([bwdq])$/
 					e_op = $1
 					sz = { 'b' => 1, 'w' => 2, 'd' => 4, 'q' => 8 }[$2]
-					eax_ = Reg.new(0, 8*sz).symbolic
+					eax_ = self.class::Reg.new(0, 8*sz).symbolic
 					dir = :+
 					if di.block and (di.block.list.find { |ddi| ddi.opcode.name == 'std' } rescue nil)
 						dir = :-
