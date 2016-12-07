@@ -630,22 +630,26 @@ class MachO < ExeFormat
 				when 'NON_LAZY_SYMBOL_POINTERS', 'LAZY_SYMBOL_POINTERS'
 					edata = seg.encoded
 					off = sec.offset - seg.fileoff
-					(sec.size / 4).times { |i|
+					(sec.size / sizeof_xword).times { |i|
 						sidx = indsymtab[sec.res1+i]
+						if not sidx
+							puts "W: osx: invalid symbol pointer index #{i} ?" if $VERBOSE
+							next
+						end
 						case IND_SYM_IDX[sidx]
 						when 'INDIRECT_SYMBOL_LOCAL' # base reloc: add delta from prefered image base
 							edata.ptr = off
-							addr = decode_word(edata)
+							addr = decode_xword(edata)
 							if s = segment_at(addr)
 								label = label_at(s.encoded, s.encoded.ptr, "xref_#{Expression[addr]}")
-								seg.encoded.reloc[off] = Metasm::Relocation.new(Expression[label], :u32, @endianness)
+								seg.encoded.reloc[off] = Metasm::Relocation.new(Expression[label], "u#@size".to_sym, @endianness)
 							end
 						when 'INDIRECT_SYMBOL_ABS'   # nothing
 						else
 							sym = @symbols[sidx]
-							seg.encoded.reloc[off] = Metasm::Relocation.new(Expression[sym.name], :u32, @endianness)
+							seg.encoded.reloc[off] = Metasm::Relocation.new(Expression[sym.name],"u#@size".to_sym, @endianness)
 						end
-						off += 4
+						off += sizeof_xword
 					}
 				when 'SYMBOL_STUBS'
 					# TODO next unless arch == 386 and sec.attrs & SELF_MODIFYING_CODE and sec.res2 == 5
@@ -655,6 +659,10 @@ class MachO < ExeFormat
 					off = sec.offset - seg.fileoff + 1
 					(sec.size / 5).times { |i|
 						sidx = indsymtab[sec.res1+i]
+						if not sidx
+							puts "W: osx: invalid symbol stub index #{i} ?" if $VERBOSE
+							next
+						end
 						case IND_SYM_IDX[sidx]
 						when 'INDIRECT_SYMBOL_LOCAL' # base reloc: add delta from prefered image base
 							edata.ptr = off
